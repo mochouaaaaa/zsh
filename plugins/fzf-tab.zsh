@@ -1,6 +1,33 @@
 zinit light Aloxaf/fzf-tab
 zinit light Freed-Wu/fzf-tab-source
 
+# 窗口的大小和位置
+export FZF_DEFAULT_OPTS="--height=60% --layout=reverse --info=inline --border --margin=1 --padding=1"
+# CTRL-T
+# Using highlight (http://www.andre-simon.de/doku/highlight/en/highlight.html)
+export FZF_CTRL_T_OPTS="--preview '(highlight -O ansi -l {} 2> /dev/null || cat {} || tree -C {}) 2> /dev/null | head -200'"
+export FZF_CTRL_T_OPTS="--select-1 --exit-0"
+# CLT-C
+export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -200'"
+
+# 预览窗口上的完整命令
+export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview'"
+
+# ctrl-x + ctrl+r 得到的命令直接运行
+fzf-history-widget-accept() {
+  fzf-history-widget
+  zle accept-line
+}
+zle -N fzf-history-widget-accept
+bindkey '^X^R' fzf-history-widget-accept
+
+# 窗口位置
+zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+
+# bat集成
+# fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}'
+# fzf --preview 'bat --color=always {}' --preview-window '~3'
+
 # # disable sort when completing options of any command
 # zstyle ':completion:complete:*:options' sort false
 # # use input as query string when completing zlua
@@ -17,10 +44,10 @@ zinit light Freed-Wu/fzf-tab-source
 # zstyle ':fzf-tab:*' switch-group ',' '.'
 
 # give a preview of commandline arguments when completing `kill`
-# zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
-# zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview '[ $group == "[process ID]" ] && ps --pid=$word -o cmd --no-headers -w -w'
-# zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-flags --preview-window=down:3:wrap
-# zstyle ':fzf-tab:complete:*:options' fzf-flags --preview-window=down:0:wrap
+zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
+zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview '[ $group == "[process ID]" ] && ps --pid=$word -o cmd --no-headers -w -w'
+zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-flags --preview-window=down:3:wrap
+zstyle ':fzf-tab:complete:*:options' fzf-flags --preview-window=down:0:wrap
 
 # 显示系统设备状态
 # zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'SYSTEMD_COLORS=1 systemctl status $word'
@@ -53,7 +80,7 @@ zstyle ':fzf-tab:complete:brew-(install|uninstall|search|info):*-argument-rest' 
 
 # Commands
 zstyle ':fzf-tab:complete:-command-:*' fzf-preview \
-    ¦ '(out=$(tldr --color always "$word") 2>/dev/null && echo $out) || (out=$(MANWIDTH=$FZF_PREVIEW_COLUMNS man "$word") 2>/dev/null && echo $out) || (out=$(which "$word") && echo $out) || echo "${(P)word}"'
+  ¦ '(out=$(tldr --color always "$word") 2>/dev/null && echo $out) || (out=$(MANWIDTH=$FZF_PREVIEW_COLUMNS man "$word") 2>/dev/null && echo $out) || (out=$(which "$word") && echo $out) || echo "${(P)word}"'
 
 # tldr
 # zstyle ':fzf-tab:complete:tldr:argument-1' fzf-preview 'tldr --color always $word'

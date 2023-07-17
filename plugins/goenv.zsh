@@ -1,4 +1,6 @@
- # goenv
+# brew install goenv
+
+# goenv
 export GOPATH=/Volumes/Code/Projects/golang
 export PATH="$PATH:$GOPATH"
 export GOPROXY=https://goproxy.cn,direct
