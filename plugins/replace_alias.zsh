@@ -3,8 +3,9 @@ alias cat="bat --paging=never"
 alias top="gtop"
 # brew install fd
 alias find="fd"
-# brew install gitui
-alias git="gitui"
+# brew install gitui tig 
+#alias git="tig"
+alias git_desktop="gitui"
 # brew install dust
 alias du="dust"
 # brew install procs

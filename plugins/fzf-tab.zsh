@@ -1,17 +1,48 @@
 zinit light Aloxaf/fzf-tab
 zinit light Freed-Wu/fzf-tab-source
+zinit snippet OMZL::git.zsh
 
-# 窗口的大小和位置
-export FZF_DEFAULT_OPTS="--height=60% --layout=reverse --info=inline --border --margin=1 --padding=1"
+# disable sort when completing options of any command
+zstyle ':completion:complete:*:options' sort false
+# use input as query string when completing zlua
+zstyle ':fzf-tab:complete:_zlua:*' query-string input
+
+export FZF_COMPLETION_TRIGGER="**"
+
+export FZF_DEFAULT_COMMAND="fd --hidden --follow -I --exclude={Pods,.git,.idea,.sass-cache,node_modules,build} --type f"
+# export FZF_DEFAULT_OPTS="--height=45% --layout=reverse --info=inline --border --margin=1 --padding=1"
+export FZF_DEFAULT_OPTS="
+--color=dark
+--color=fg:#707a8c,bg:-1,hl:#3e9831,fg+:#cbccc6,bg+:#434c5e,hl+:#5fff87
+--color=info:#af87ff,prompt:#5fff87,pointer:#ff87d7,marker:#ff87d7,spinner:#ff87d7
+--height 60%
+--layout reverse
+--sort
+--preview '(highlight -O ansi -l {} 2> /dev/null || cat {} || tree -N -C {}) 2> /dev/null | head -500'
+--preview-window right:50%:wrap
+--bind '?:toggle-preview'
+--border
+--cycle
+"
+
 # CTRL-T
-# Using highlight (http://www.andre-simon.de/doku/highlight/en/highlight.html)
 export FZF_CTRL_T_OPTS="--preview '(highlight -O ansi -l {} 2> /dev/null || cat {} || tree -C {}) 2> /dev/null | head -200'"
-export FZF_CTRL_T_OPTS="--select-1 --exit-0"
+export FZF_CTRL_T_COMMAND=$FZF_DEFAULT_COMMAND
+export FZF_CTRL_T_OPTS=$FZF_DEFAULT_OPTS
 # CLT-C
 export FZF_ALT_C_OPTS="--preview 'tree -C {} | head -200'"
 
-# 预览窗口上的完整命令
-export FZF_CTRL_R_OPTS="--preview 'echo {}' --preview-window down:3:hidden:wrap --bind '?:toggle-preview'"
+# CTRL-R
+export FZF_CTRL_R_OPTS="
+--layout=reverse
+--sort
+--exact
+--preview 'echo {}'
+--preview-window down:3:hidden:wrap
+--bind '?:toggle-preview'
+--border
+--cycle
+"
 
 # ctrl-x + ctrl+r 得到的命令直接运行
 fzf-history-widget-accept() {
@@ -21,72 +52,56 @@ fzf-history-widget-accept() {
 zle -N fzf-history-widget-accept
 bindkey '^X^R' fzf-history-widget-accept
 
-# 窗口位置
+# tmux
+export FZF_TMUX_OPTS="-p 90%,80%" # 控制着fzf的window 是 popup 的还是 split panel 的
 zstyle ':fzf-tab:*' fzf-command ftb-tmux-popup
+zstyle ':fzf-tab:*' popup-pad 30 0
+zstyle ':fzf-tab:*' fzf-flags --preview-window=down:3:hidden:wrap
+zstyle ':fzf-tab:*' fzf-pad 4
+zstyle ':completion:*:exa' file-sort modification
+zstyle ':completion:*:exa' sort false
 
-# bat集成
-# fzf --preview 'bat --color=always --style=numbers --line-range=:500 {}'
-# fzf --preview 'bat --color=always {}' --preview-window '~3'
+# cd
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath' # remember to use single quote here!!!
 
-# # disable sort when completing options of any command
-# zstyle ':completion:complete:*:options' sort false
-# # use input as query string when completing zlua
-# zstyle ':fzf-tab:complete:_zlua:*' query-string input
-# # disable sort when completing `git checkout`
-# zstyle ':completion:*:git-checkout:*' sort false
-# # set descriptions format to enable group support
-# zstyle ':completion:*:descriptions' format '[%d]'
-# # set list-colors to enable filename colorizing
-# zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-# # preview directory's content with exa when completing cd
-# zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
-# # switch group using `,` and `.`
-# zstyle ':fzf-tab:*' switch-group ',' '.'
-
+# ps/kill
 # give a preview of commandline arguments when completing `kill`
 zstyle ':completion:*:*:*:*:processes' command "ps -u $USER -o pid,user,comm -w -w"
-zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview '[ $group == "[process ID]" ] && ps --pid=$word -o cmd --no-headers -w -w'
+zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-preview '[[ $group == "[process ID]" ]] && ps --pid=$word -o cmd --no-headers -w -w'
 zstyle ':fzf-tab:complete:(kill|ps):argument-rest' fzf-flags --preview-window=down:3:wrap
-zstyle ':fzf-tab:complete:*:options' fzf-flags --preview-window=down:0:wrap
 
-# 显示系统设备状态
-# zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'SYSTEMD_COLORS=1 systemctl status $word'
+# show systemd unit status
+zstyle ':fzf-tab:complete:systemctl-*:*' fzf-preview 'SYSTEMD_COLORS=1 systemctl status $word'
 
-# environment variable 环境变量
-# zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' fzf-preview 'echo ${(P)word}'
+# show file content
+zstyle ':fzf-tab:complete:*:*' fzf-preview 'less ${(Q)realpath}'
+export LESSOPEN='|~/.lessfilter %s'
+zstyle ':fzf-tab:complete:*:options' fzf-preview
+zstyle ':fzf-tab:complete:*:argument-1' fzf-preview
 
-# git
-# it is an example. you can change it
-# zstyle ':fzf-tab:complete:git-(add|diff|restore):*' fzf-preview \
-# 	'git diff $word | delta'
-# zstyle ':fzf-tab:complete:git-log:*' fzf-preview \
-# 	'git log --color=always $word'
-# zstyle ':fzf-tab:complete:git-help:*' fzf-preview \
-# 	'git help $word | bat -plman --color=always'
-# zstyle ':fzf-tab:complete:git-show:*' fzf-preview \
-# 	'case "$group" in
-# 	"commit tag") git show --color=always $word ;;
-# 	*) git show --color=always $word | delta ;;
-# 	esac'
-# zstyle ':fzf-tab:complete:git-checkout:*' fzf-preview \
-# 	'case "$group" in
-# 	"modified file") git diff $word | delta ;;
-# 	"recent commit object name") git show --color=always $word | delta ;;
-# 	*) git log --color=always $word ;;
-# 	esac'
 
+# env variable
+zstyle ':fzf-tab:complete:(-command-|-parameter-|-brace-parameter-|export|unset|expand):*' fzf-preview 'echo ${(P)word}'
+
+# fzfp() {
+#   fzf --preview '[[ $(file --mime {}) =~ binary ]] && echo {} is a binary file || (bat --style=numbers --color=always{} || rougify {}  || highlight -O ansi -l {} || coderay {} || cat {}) 2> /dev/null | head -500'
+# }
+#
+# #文件查找
+# alias fzf.w="fzf --height 40% --layout reverse --info inline --border \
+#     --preview 'file {}' --preview-window down:1:noborder \
+#     --color 'fg:#bbccdd,fg+:#ddeeff,bg:#334455,preview-bg:#223344,border:#778899'"
+#
+# #文件预览
+# alias fzf.p="fzf --preview 'bat --style=numbers --color=always --line-range :500 {}'"
+# alias f="fzf.p"
+#
 # Homebrew
 zstyle ':fzf-tab:complete:brew-(install|uninstall|search|info):*-argument-rest' fzf-preview 'brew info $word'
 
 # Commands
-zstyle ':fzf-tab:complete:-command-:*' fzf-preview \
-  ¦ '(out=$(tldr --color always "$word") 2>/dev/null && echo $out) || (out=$(MANWIDTH=$FZF_PREVIEW_COLUMNS man "$word") 2>/dev/null && echo $out) || (out=$(which "$word") && echo $out) || echo "${(P)word}"'
+zstyle ':fzf-tab:complete:-command-:*' fzf-preview '(out=$(tldr --color always "$word") 2>/dev/null && echo $out) || (out=$(MANWIDTH=$FZF_PREVIEW_COLUMNS man "$word") 2>/dev/null && echo $out) || (out=$(which "$word") && echo $out) || echo "${(P)word}"'
 
 # tldr
-# zstyle ':fzf-tab:complete:tldr:argument-1' fzf-preview 'tldr --color always $word'
-#
-#popup-min-size
-# apply to all command
-zstyle ':fzf-tab:*' popup-min-size 50 8
-# only apply to 'diff'
-zstyle ':fzf-tab:complete:diff:*' popup-min-size 80 12
+zstyle ':fzf-tab:complete:tldr:argument-1' fzf-preview 'tldr --color always $word'
+

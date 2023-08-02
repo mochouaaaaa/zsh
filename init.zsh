@@ -1,4 +1,8 @@
 
+autoload -U compaudit compinit
+autoload -U compinit && compinit
+
+
 PWD_PATH=$HOME/.config/zsh
 PLUGIN_PATH=$PWD_PATH/plugins
 
